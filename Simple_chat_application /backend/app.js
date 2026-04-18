@@ -3,7 +3,7 @@ import { WebSocketServer , WebSocket} from "ws";
 const wss = new WebSocketServer({ port: 8080 });
 
 let usercount=0;
-let allsockets:WebSocket[]=[];
+let allsockets=[];
 
 wss.on("connection",(socket)=>{
     usercount=usercount+1;
