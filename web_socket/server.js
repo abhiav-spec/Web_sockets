@@ -1,10 +1,44 @@
-import { WebSocketServer } from 'ws';
+import express from 'express';
+import http from 'http';
+import WebSocket, { WebSocketServer } from 'ws';
 
-const wss = new WebSocketServer({ port: 8080 });
+const app = express();
 
-wss.on('connection', (ws) => {
-  console.log('A new client connected!');
-  ws.send('Welcome to the WebSocket server!');
+// Basic HTTP route
+app.get('/', (req, res) => {
+  res.send('HTTP server is running. Use WebSocket to connect.');
 });
 
-console.log('WebSocket server running on ws://localhost:8080');
+// Create HTTP server
+const server = http.createServer(app);
+
+// Attach WebSocket server to HTTP server
+const wss = new WebSocketServer({ server });
+
+// WebSocket connection
+wss.on('connection', (ws, req) => {
+  console.log('New client connected');
+
+  ws.send('Welcome to WebSocket server!');
+
+  ws.on('message', (message) => {
+    console.log('Received:', message.toString());
+
+    // Broadcast to all clients
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message.toString());
+      }
+    });
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Start server
+server.listen(8080, () => {
+  console.log('Server running on http://localhost:8080');
+  console.log('WebSocket running on ws://localhost:8080');
+});
